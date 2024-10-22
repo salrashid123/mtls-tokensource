@@ -52,11 +52,10 @@ type sTSTokenResponse struct {
 
 // SignerMTLSTokenSource returns a TokenSource or GCP workload federation using mTLS where the key is in a TPM
 //
-//     Signer (cypto.Signer): Anything that implements Signer
-//     Audience (string): The audience for mtls workload federation
-//     PublicCertFile (string): The client certificate file for mtls workload federation
-//     Scopes ([]string): The GCP Scopes for the GCP token. (default: cloud-platform)
-
+//	Signer (cypto.Signer): Anything that implements Signer
+//	Audience (string): The audience for mtls workload federation
+//	PublicCertFile (string): The client certificate file for mtls workload federation
+//	Scopes ([]string): The GCP Scopes for the GCP token. (default: cloud-platform)
 func SignerMTLSTokenSource(tokenConfig *SignerMtlsTokenConfig) (oauth2.TokenSource, error) {
 
 	if &tokenConfig.Signer == nil {

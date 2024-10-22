@@ -26,6 +26,7 @@ Also see:
   - [nginx with TPM based SSL](https://blog.salrashid.dev/articles/2021/nginx_with_tpm_ssl/)
   - [TPM based TLS using Attested Keys](https://github.com/salrashid123/tls_ak)
   - [go mTLS with multiple certificate issuers and OCSP verification](https://github.com/salrashid123/go_mtls_scratchpad)
+  - [mTLS with Google Cloud KMS](https://github.com/salrashid123/kms_golang_signer)
 
 * `crypto.Signer`
 

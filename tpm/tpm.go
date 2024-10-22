@@ -70,13 +70,12 @@ type sTSTokenResponse struct {
 
 // TpmMTLSTokenSource returns a TokenSource or GCP workload federation using mTLS where the key is in a TPM
 //
-//     TPMDevice (io.ReadWriteCloser): The device Handle for the TPM managed by the caller Use either TPMDevice or TPMPath
-//     Audience (string): The audience for mtls workload federation
-//     mtlsCertificateFile (string): The client certificate file for mtls workload federation
-//     Scopes ([]string): The GCP Scopes for the GCP token. (default: cloud-platform)
-//     NamedHandle (*tpm2.NameHandle): The key handle to use
-//     Session: (go-tpm-jwt.Session): PCR or Password authorized session to use (github.com/salrashid123/golang-jwt-tpm)
-
+//	TPMDevice (io.ReadWriteCloser): The device Handle for the TPM managed by the caller Use either TPMDevice or TPMPath
+//	Audience (string): The audience for mtls workload federation
+//	mtlsCertificateFile (string): The client certificate file for mtls workload federation
+//	Scopes ([]string): The GCP Scopes for the GCP token. (default: cloud-platform)
+//	NamedHandle (*tpm2.NameHandle): The key handle to use
+//	AuthSession: (go-tpm-jwt.Session): PCR or Password authorized session to use (github.com/salrashid123/golang-jwt-tpm)
 func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, error) {
 
 	if &tokenConfig.NamedHandle == nil || tokenConfig.TPMDevice == nil {
