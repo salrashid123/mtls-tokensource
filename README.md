@@ -114,6 +114,14 @@ export PROJECT_NUMBER=`gcloud projects describe $PROJECT_ID --format='value(proj
 export POOL_ID="cert-pool-1"
 export PROVIDER_ID="cert-provider-1"
 
+## you may need to allow "MTLS" as an org policy
+# export ORGANIZATION_ID=123456789
+# $ gcloud resource-manager org-policies describe constraints/iam.workloadIdentityPoolProviders  --organization=$ORGANIZATION_ID
+# constraint: constraints/iam.workloadIdentityPoolProviders
+# listPolicy:
+#   allowedValues:
+#   - MTLS
+
 ### >>> NOTE: ca/root-ca.crt must be just the PEM file, no headers
 # openssl x509 -in ca/root-ca.crt -text \
 #   -certopt no_header,no_pubkey,no_subject,no_issuer,no_signame,no_version,no_serial,no_validity,no_extensions,no_sigdump,no_aux,no_extensions
