@@ -152,7 +152,7 @@ gcloud iam workload-identity-pools providers create-x509 $PROVIDER_ID \
 # In our case, its going to be "workload1" in a later step
 gcloud projects add-iam-policy-binding $PROJECT_ID  \
  --member "principal://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL_ID/subject/workload1" \
-   --role --role=roles/storage.admin
+    --role=roles/storage.admin
 ```
 
 ##### Configure Certificates
