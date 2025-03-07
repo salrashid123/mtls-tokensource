@@ -71,7 +71,6 @@ To use this sample end-to-end, you'll need
 - [tpm2-openssl](https://github.com/tpm2-software/tpm2-openssl/tree/master)
 - [tpm2-tools](https://github.com/tpm2-software/tpm2-tools)
 - `go`
-- [tpm2tss-genkey](https://github.com/tpm2-software/tpm2-tss-engine/blob/master/man/tpm2tss-genkey.1.md) or [tpm2genkey](https://github.com/salrashid123/tpm2genkey)
 - [Software TPM](https://github.com/stefanberger/swtpm) (optional) 
 
 ##### Create CA
@@ -228,12 +227,7 @@ tpm2_evictcontrol -C o -c certs/rkey.ctx 0x81008001
 tpm2_flushcontext -t
 
 ## convert the key public/private --> PEM
-#### use either official
-###### https://github.com/tpm2-software/tpm2-tss-engine/blob/master/man/tpm2tss-genkey.1.md
-# tpm2tss-genkey -u certs/rkey.pub -r certs/rkey.priv certs/$NAME.pem 
-#### or in go, download as release binary which doesn't require older tpm2-tss-engine
-######  https://github.com/salrashid123/tpm2genkey/releases
-/tmp/tpm2genkey --mode=tpm2pem --public=certs/rkey.pub --private=certs/rkey.priv  --out=certs/$NAME.pem 
+tpm2_encodeobject -C primary.ctx -u certs/rkey.pub -r certs/rkey.priv -o certs/$NAME.pem 
 
 openssl ec -provider tpm2  -provider default -in certs/$NAME.pem  --text
 
