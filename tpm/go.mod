@@ -1,13 +1,11 @@
 module github.com/salrashid123/mtls-tokensource/tpm
 
-go 1.23.0
-
-toolchain go1.24.0
+go 1.24.0
 
 require (
-	github.com/google/go-tpm v0.9.3
+	github.com/google/go-tpm v0.9.1
 	github.com/salrashid123/golang-jwt-tpm v1.8.4
-	github.com/salrashid123/signer/tpm v0.0.0-20250310124309-f5d5ec4c8edc
+	github.com/salrashid123/signer v0.8.7
 	golang.org/x/net v0.37.0
 	golang.org/x/oauth2 v0.28.0
 )
