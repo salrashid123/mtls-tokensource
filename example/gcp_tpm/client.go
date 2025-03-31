@@ -126,11 +126,8 @@ func main() {
 	}
 
 	ts, err := tpmmtls.TpmMTLSTokenSource(&tpmmtls.TpmMtlsTokenConfig{
-		TPMDevice: rwc,
-		NamedHandle: tpm2.NamedHandle{
-			Handle: regenRSAKey.ObjectHandle,
-			Name:   regenRSAKey.Name,
-		},
+		TPMDevice:           rwc,
+		Handle:              regenRSAKey.ObjectHandle,
 		Audience:            fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolid, *providerid),
 		MtlsCertificateFile: *pubCert,
 	})

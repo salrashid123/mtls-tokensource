@@ -130,11 +130,8 @@ func main() {
 	}
 
 	r, err := tpmsigner.NewTPMCrypto(&tpmsigner.TPM{
-		TpmDevice: rwc,
-		NamedHandle: &tpm2.NamedHandle{
-			Handle: regenRSAKey.ObjectHandle,
-			Name:   regenRSAKey.Name,
-		},
+		TpmDevice:      rwc,
+		Handle:         regenRSAKey.ObjectHandle,
 		PublicCertFile: *pubCert,
 	})
 	if err != nil {

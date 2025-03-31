@@ -30,14 +30,12 @@ const (
 // TpmTokenConfig parameters to start Credential based off of TPM RSA Private Key.
 type TpmMtlsTokenConfig struct {
 	TPMDevice           io.ReadWriteCloser
-	NamedHandle         tpm2.NamedHandle // load a key from handle
+	Handle              tpm2.TPMHandle // load a key from handle
 	AuthSession         tpmjwt.Session
 	Scopes              []string
-	Audience            string           // for mtls workload federation
-	MtlsCertificateFile string           // mtls x509 client cert
-	EncryptionHandle    tpm2.TPMHandle   // (optional) handle to use for transit encryption
-	EncryptionPub       *tpm2.TPMTPublic // (optional) public key to use for transit encryption
-
+	Audience            string         // for mtls workload federation
+	MtlsCertificateFile string         // mtls x509 client cert
+	EncryptionHandle    tpm2.TPMHandle // (optional) handle to use for transit encryption
 }
 
 type tpmMtlsTokenSource struct {
@@ -46,13 +44,11 @@ type tpmMtlsTokenSource struct {
 	audience            string
 	mtlsCertificateFile string
 	tpmdevice           io.ReadWriteCloser
-	namedHandle         tpm2.NamedHandle
+	handle              tpm2.TPMHandle
 	authSession         tpmjwt.Session
 	scopes              []string
 	myToken             *oauth2.Token
-	encryptionHandle    tpm2.TPMHandle   // (optional) handle to use for transit encryption
-	encryptionPub       *tpm2.TPMTPublic // (optional) public key to use for transit encryption
-
+	encryptionHandle    tpm2.TPMHandle // (optional) handle to use for transit encryption
 }
 
 type rtokenJSON struct {
@@ -78,7 +74,7 @@ type sTSTokenResponse struct {
 //	AuthSession: (go-tpm-jwt.Session): PCR or Password authorized session to use (github.com/salrashid123/golang-jwt-tpm)
 func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, error) {
 
-	if &tokenConfig.NamedHandle == nil || tokenConfig.TPMDevice == nil {
+	if &tokenConfig.Handle == nil || tokenConfig.TPMDevice == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: KeyHandle and TPMDevice must be specified")
 	}
 
@@ -101,9 +97,8 @@ func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, er
 		tpmdevice:           tokenConfig.TPMDevice,
 		authSession:         tokenConfig.AuthSession,
 		scopes:              tokenConfig.Scopes,
-		namedHandle:         tokenConfig.NamedHandle,
+		handle:              tokenConfig.Handle,
 		encryptionHandle:    tokenConfig.EncryptionHandle,
-		encryptionPub:       tokenConfig.EncryptionPub,
 	}, nil
 
 }
@@ -125,7 +120,7 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 
 	r, err := tpmSigner.NewTPMCrypto(&tpmSigner.TPM{
 		TpmDevice:      ts.tpmdevice,
-		NamedHandle:    &ts.namedHandle,
+		Handle:         ts.handle,
 		PublicCertFile: ts.mtlsCertificateFile,
 	})
 	if err != nil {
