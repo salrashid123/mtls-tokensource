@@ -2,6 +2,7 @@ package tpmmtls
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +15,7 @@ import (
 
 	"github.com/google/go-tpm/tpm2"
 	tpmjwt "github.com/salrashid123/golang-jwt-tpm"
-	tpmSigner "github.com/salrashid123/signer/tpm"
+	tpmSigner "github.com/salrashid123/tpmsigner"
 	"golang.org/x/net/http2"
 	"golang.org/x/oauth2"
 )
@@ -29,26 +30,26 @@ const (
 
 // TpmTokenConfig parameters to start Credential based off of TPM RSA Private Key.
 type TpmMtlsTokenConfig struct {
-	TPMDevice           io.ReadWriteCloser
-	Handle              tpm2.TPMHandle // load a key from handle
-	AuthSession         tpmjwt.Session
-	Scopes              []string
-	Audience            string         // for mtls workload federation
-	MtlsCertificateFile string         // mtls x509 client cert
-	EncryptionHandle    tpm2.TPMHandle // (optional) handle to use for transit encryption
+	TPMDevice        io.ReadWriteCloser
+	Handle           tpm2.TPMHandle // load a key from handle
+	AuthSession      tpmjwt.Session
+	Scopes           []string
+	Audience         string            // for mtls workload federation
+	X509Certificate  *x509.Certificate // mtls x509 client cert
+	EncryptionHandle tpm2.TPMHandle    // (optional) handle to use for transit encryption
 }
 
 type tpmMtlsTokenSource struct {
 	refreshMutex *sync.Mutex
 	oauth2.TokenSource
-	audience            string
-	mtlsCertificateFile string
-	tpmdevice           io.ReadWriteCloser
-	handle              tpm2.TPMHandle
-	authSession         tpmjwt.Session
-	scopes              []string
-	myToken             *oauth2.Token
-	encryptionHandle    tpm2.TPMHandle // (optional) handle to use for transit encryption
+	audience         string
+	x509Certificate  x509.Certificate
+	tpmdevice        io.ReadWriteCloser
+	handle           tpm2.TPMHandle
+	authSession      tpmjwt.Session
+	scopes           []string
+	myToken          *oauth2.Token
+	encryptionHandle tpm2.TPMHandle // (optional) handle to use for transit encryption
 }
 
 type rtokenJSON struct {
@@ -82,7 +83,7 @@ func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, er
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: e TPMTokenConfig.Audience and cannot be nil")
 	}
 
-	if tokenConfig.Audience != "" && tokenConfig.MtlsCertificateFile == "" {
+	if tokenConfig.Audience != "" && &tokenConfig.X509Certificate == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: TPMTokenConfig.Audience and tokenConfig.MtlsCertificateFile must be set")
 	}
 
@@ -91,14 +92,14 @@ func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, er
 	}
 
 	return &tpmMtlsTokenSource{
-		refreshMutex:        &sync.Mutex{},
-		audience:            tokenConfig.Audience,
-		mtlsCertificateFile: tokenConfig.MtlsCertificateFile,
-		tpmdevice:           tokenConfig.TPMDevice,
-		authSession:         tokenConfig.AuthSession,
-		scopes:              tokenConfig.Scopes,
-		handle:              tokenConfig.Handle,
-		encryptionHandle:    tokenConfig.EncryptionHandle,
+		refreshMutex:     &sync.Mutex{},
+		audience:         tokenConfig.Audience,
+		x509Certificate:  *tokenConfig.X509Certificate,
+		tpmdevice:        tokenConfig.TPMDevice,
+		authSession:      tokenConfig.AuthSession,
+		scopes:           tokenConfig.Scopes,
+		handle:           tokenConfig.Handle,
+		encryptionHandle: tokenConfig.EncryptionHandle,
 	}, nil
 
 }
@@ -115,13 +116,13 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 	// if err != nil {
 	// 	return nil, fmt.Errorf("unable to reading root trust ca %v", err)
 	// }
-	//caCertPool := x509.NewCertPool()
+	// caCertPool := x509.NewCertPool()
 	// caCertPool.AppendCertsFromPEM(caCert)
 
 	r, err := tpmSigner.NewTPMCrypto(&tpmSigner.TPM{
-		TpmDevice:      ts.tpmdevice,
-		Handle:         ts.handle,
-		PublicCertFile: ts.mtlsCertificateFile,
+		TpmDevice:       ts.tpmdevice,
+		Handle:          ts.handle,
+		X509Certificate: &ts.x509Certificate,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: error initializing client, %v", err)

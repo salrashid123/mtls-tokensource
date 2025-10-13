@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
@@ -125,11 +127,28 @@ func main() {
 		log.Fatalf("can't close primary  %v", err)
 	}
 
+	certPEMBlock, err := os.ReadFile(*pubCert)
+	if err != nil {
+		log.Fatalf("Failed to read certificate file: %v", err)
+	}
+
+	// Decode the PEM block
+	block, _ := pem.Decode(certPEMBlock)
+	if block == nil || block.Type != "CERTIFICATE" {
+		log.Fatal("Failed to decode PEM block as certificate")
+	}
+
+	// Parse the X.509 certificate
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		log.Fatalf("Failed to parse certificate: %v", err)
+	}
+
 	ts, err := tpmmtls.TpmMTLSTokenSource(&tpmmtls.TpmMtlsTokenConfig{
-		TPMDevice:           rwc,
-		Handle:              regenRSAKey.ObjectHandle,
-		Audience:            fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolid, *providerid),
-		MtlsCertificateFile: *pubCert,
+		TPMDevice:       rwc,
+		Handle:          regenRSAKey.ObjectHandle,
+		Audience:        fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolid, *providerid),
+		X509Certificate: cert,
 	})
 	if err != nil {
 		log.Fatal(err)

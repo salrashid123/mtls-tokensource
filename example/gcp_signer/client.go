@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
@@ -21,7 +22,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	signermtls "github.com/salrashid123/mtls-tokensource/signer"
-	tpmsigner "github.com/salrashid123/signer/tpm"
+	tpmsigner "github.com/salrashid123/tpmsigner"
 )
 
 var (
@@ -127,11 +128,28 @@ func main() {
 		log.Fatalf("can't close primary  %v", err)
 	}
 
+	certPEMBlock, err := os.ReadFile(*pubCert)
+	if err != nil {
+		log.Fatalf("Failed to read certificate file: %v", err)
+	}
+
+	// Decode the PEM block
+	block, _ := pem.Decode(certPEMBlock)
+	if block == nil || block.Type != "CERTIFICATE" {
+		log.Fatal("Failed to decode PEM block as certificate")
+	}
+
+	// Parse the X.509 certificate
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		log.Fatalf("Failed to parse certificate: %v", err)
+	}
+
 	// get a signer, this happens to be for a TPM
 	tsigner, err := tpmsigner.NewTPMCrypto(&tpmsigner.TPM{
-		TpmDevice:      rwc,
-		Handle:         regenRSAKey.ObjectHandle,
-		PublicCertFile: *pubCert,
+		TpmDevice:       rwc,
+		Handle:          regenRSAKey.ObjectHandle,
+		X509Certificate: cert,
 	})
 	if err != nil {
 		log.Fatal(err)

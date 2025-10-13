@@ -58,7 +58,7 @@ type sTSTokenResponse struct {
 //	Scopes ([]string): The GCP Scopes for the GCP token. (default: cloud-platform)
 func SignerMTLSTokenSource(tokenConfig *SignerMtlsTokenConfig) (oauth2.TokenSource, error) {
 
-	if &tokenConfig.Signer == nil {
+	if tokenConfig.Signer == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: Signer must be specified")
 	}
 
