@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -128,16 +127,14 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: error initializing client, %v", err)
 	}
 
-	sslKeyLogfile := os.Getenv("SSLKEYLOGFILE")
-	var w *os.File
-	if sslKeyLogfile != "" {
-		w, err = os.OpenFile(sslKeyLogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		w = os.Stdout
-	}
+	// sslKeyLogfile := os.Getenv("SSLKEYLOGFILE")
+	// var w *os.File
+	// if sslKeyLogfile != "" {
+	// 	w, err = os.OpenFile(sslKeyLogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 
 	tcrt, err := r.TLSCertificate()
 	if err != nil {
@@ -148,7 +145,7 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 			//RootCAs: caCertPool,
 			//ServerName:   "sts.mtls.googleapis.com",
 			Certificates: []tls.Certificate{tcrt},
-			KeyLogWriter: w,
+			//KeyLogWriter: w,
 		},
 	}
 
