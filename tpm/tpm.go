@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -75,7 +74,7 @@ type sTSTokenResponse struct {
 //	AuthSession: (go-tpm-jwt.Session): PCR or Password authorized session to use (github.com/salrashid123/golang-jwt-tpm)
 func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, error) {
 
-	if &tokenConfig.Handle == nil || tokenConfig.TPMDevice == nil {
+	if tokenConfig.Handle == 0 || tokenConfig.TPMDevice == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: KeyHandle and TPMDevice must be specified")
 	}
 
@@ -83,7 +82,7 @@ func TpmMTLSTokenSource(tokenConfig *TpmMtlsTokenConfig) (oauth2.TokenSource, er
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: e TPMTokenConfig.Audience and cannot be nil")
 	}
 
-	if tokenConfig.Audience != "" && &tokenConfig.X509Certificate == nil {
+	if tokenConfig.Audience != "" && tokenConfig.X509Certificate == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: TPMTokenConfig.Audience and tokenConfig.MtlsCertificateFile must be set")
 	}
 
@@ -128,17 +127,6 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: error initializing client, %v", err)
 	}
 
-	sslKeyLogfile := os.Getenv("SSLKEYLOGFILE")
-	var w *os.File
-	if sslKeyLogfile != "" {
-		w, err = os.OpenFile(sslKeyLogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		w = os.Stdout
-	}
-
 	tcrt, err := r.TLSCertificate()
 	if err != nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: error reading client certificate %v", err)
@@ -148,7 +136,6 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 			//RootCAs: caCertPool,
 			//ServerName:   "sts.mtls.googleapis.com",
 			Certificates: []tls.Certificate{tcrt},
-			KeyLogWriter: w,
 		},
 	}
 
@@ -180,7 +167,7 @@ func (ts *tpmMtlsTokenSource) Token() (*oauth2.Token, error) {
 		return nil, err
 	}
 
-	exp := time.Now().Add(time.Duration(tresp.ExpiresIn))
+	exp := time.Now().Add(time.Duration(tresp.ExpiresIn) * time.Second)
 
 	ts.myToken = &oauth2.Token{AccessToken: tresp.AccessToken, TokenType: tresp.TokenType, Expiry: exp}
 	return ts.myToken, nil
