@@ -157,9 +157,9 @@ func main() {
 
 	// apply the signer to a tokensource that uses mTLS
 	ts, err := signermtls.SignerMTLSTokenSource(&signermtls.SignerMtlsTokenConfig{
-		Signer:         tsigner,
-		PublicCertFile: *pubCert,
-		Audience:       fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolid, *providerid),
+		Signer:     tsigner,
+		PublicCert: cert,
+		Audience:   fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolid, *providerid),
 	})
 	if err != nil {
 		log.Fatal(err)

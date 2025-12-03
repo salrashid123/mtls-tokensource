@@ -4,17 +4,14 @@ import (
 	"crypto"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
-	"os"
 )
 
 const ()
 
 type GenericSignerTLS struct {
-	crypto.Signer              // https://golang.org/pkg/crypto/#Signer
-	MtlsCertificateFile string // mtls x509 client cert
-	x509Certificate     *x509.Certificate
+	crypto.Signer       // https://golang.org/pkg/crypto/#Signer
+	MtlsCertificateFile *x509.Certificate
 	SignatureAlgorithm  x509.SignatureAlgorithm
 }
 
@@ -40,30 +37,14 @@ func NewGenericSignerTLS(conf *GenericSignerTLS) (GenericSignerTLS, error) {
 
 func (t GenericSignerTLS) TLSCertificate() (tls.Certificate, error) {
 
-	if t.MtlsCertificateFile == "" {
+	if t.MtlsCertificateFile == nil {
 		return tls.Certificate{}, fmt.Errorf("public X509 certificate not specified")
-	}
-
-	if t.x509Certificate == nil {
-		pubPEM, err := os.ReadFile(t.MtlsCertificateFile)
-		if err != nil {
-			return tls.Certificate{}, fmt.Errorf("unable to read keys %v", err)
-		}
-		block, _ := pem.Decode([]byte(pubPEM))
-		if block == nil {
-			return tls.Certificate{}, fmt.Errorf("failed to parse PEM block containing the public key")
-		}
-		pub, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			return tls.Certificate{}, fmt.Errorf("failed to parse public key: %v ", err)
-		}
-		t.x509Certificate = pub
 	}
 
 	var privKey crypto.PrivateKey = t
 	return tls.Certificate{
 		PrivateKey:  privKey,
-		Leaf:        t.x509Certificate,
-		Certificate: [][]byte{t.x509Certificate.Raw},
+		Leaf:        t.MtlsCertificateFile,
+		Certificate: [][]byte{t.MtlsCertificateFile.Raw},
 	}, nil
 }

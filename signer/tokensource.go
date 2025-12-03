@@ -3,6 +3,7 @@ package signermtls
 import (
 	"crypto"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,17 +29,17 @@ const (
 
 // TpmTokenConfig parameters to start Credential based off of TPM RSA Private Key.
 type SignerMtlsTokenConfig struct {
-	Signer         crypto.Signer
-	Scopes         []string
-	Audience       string // for mtls workload federation
-	PublicCertFile string // mtls x509 client cert
+	Signer     crypto.Signer
+	Scopes     []string
+	Audience   string            // for mtls workload federation
+	PublicCert *x509.Certificate // mtls x509 client cert
 }
 
 type signerMtlsTokenSource struct {
 	refreshMutex *sync.Mutex
 	oauth2.TokenSource
 	audience            string
-	mtlsCertificateFile string
+	mtlsCertificateFile *x509.Certificate
 	signer              crypto.Signer
 	scopes              []string
 	myToken             *oauth2.Token
@@ -66,7 +67,7 @@ func SignerMTLSTokenSource(tokenConfig *SignerMtlsTokenConfig) (oauth2.TokenSour
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: e TPMTokenConfig.Audience and cannot be nil")
 	}
 
-	if tokenConfig.Audience != "" && tokenConfig.PublicCertFile == "" {
+	if tokenConfig.Audience != "" && tokenConfig.PublicCert == nil {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: TPMTokenConfig.Audience and tokenConfig.PublicCertFile must be set")
 	}
 
@@ -77,7 +78,7 @@ func SignerMTLSTokenSource(tokenConfig *SignerMtlsTokenConfig) (oauth2.TokenSour
 	return &signerMtlsTokenSource{
 		refreshMutex:        &sync.Mutex{},
 		audience:            tokenConfig.Audience,
-		mtlsCertificateFile: tokenConfig.PublicCertFile,
+		mtlsCertificateFile: tokenConfig.PublicCert,
 		signer:              tokenConfig.Signer,
 		scopes:              tokenConfig.Scopes,
 	}, nil

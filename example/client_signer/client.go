@@ -158,7 +158,7 @@ func main() {
 
 	rs, err := genericsigner.NewGenericSignerTLS(&genericsigner.GenericSignerTLS{
 		Signer:              tsigner,
-		MtlsCertificateFile: *pubCert,
+		MtlsCertificateFile: cert,
 	})
 	if err != nil {
 		log.Fatal(err)
