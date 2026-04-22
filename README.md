@@ -9,6 +9,11 @@ Currently, GCP Workload Federation requires the client key to be accessible [dir
 
 The samples in this repo demonstrates how to bootstrap credentials where the mTLS private key is embedded inside a device.
 
+Also note that you can **BIND** the issued `access_token` such that the token's use must be used with the same TLS client certificates.
+
+* [TPM based mTLS bound access tokens for Google Cloud Platform](https://github.com/salrashid123/caa_tpm_mtls_go_client)
+
+
 >> WARNING: this repo is not supported by Google
 
 Also see:
